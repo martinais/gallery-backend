@@ -4,14 +4,13 @@ from model import User, migrate_database, connect, disconnect
 
 app = Flask(__name__)
 app.debug = True
-migrate_database()
 
 # === CORS ===
-# 
+#
 #ALLOWLIST = ['http://localhost:8080','http://localhost:5000']
 #
-#@app.after_request
-#def add_cors_headers(response):
+# @app.after_request
+# def add_cors_headers(response):
 #    origin = request.headers.get('Origin')
 #    if origin in ALLOWLIST:
 #        response.headers.add('Access-Control-Allow-Origin', origin)
@@ -25,8 +24,10 @@ migrate_database()
 #
 # ============
 
+
 def debug(msg):
     app.logger.debug(msg)
+
 
 def error(msg):
     app.logger.error(msg)
@@ -37,10 +38,17 @@ def index():
     return "Martinade's API"
 
 
-@app.route('/users', methods=['PUT', 'GET'])
+@app.route('/users', methods=['GET', 'POST'])
 def users():
     connect()
-    users = [user.name for user in User.select()]
-    debug(User.select())
+    if request.method == 'GET':
+        users = [user.name for user in User.select()]
+        return users
+    elif request.method == 'POST':
+        data = request.get_json()
+        if User.select().where(User.name == data.get('name')).count() == 0:
+            if User(name=data.get('name'), email=data.get('email')).save():
+                return '', 204
+            error('unable to create user')
+        return '', 409
     disconnect()
-    return jsonify(users)

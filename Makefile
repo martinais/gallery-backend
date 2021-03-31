@@ -7,7 +7,11 @@ PG_EXEC=$(DOCKER) exec database psql -U $(PG_USER)
 up:
 	$(DOCKER) build
 	$(DOCKER) up -d && sleep 3
+	$(MAKE) reset
+
+reset:
 	$(PG_EXEC) -c '\l' | grep $(PG_DB) || $(PG_EXEC) -c "CREATE DATABASE $(PG_DB)"
+	$(DOCKER) exec backend python -c 'import model; model.migrate_database()'
 
 down:
 	$(DOCKER) down --volumes

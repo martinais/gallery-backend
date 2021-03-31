@@ -7,13 +7,16 @@ db = PostgresqlDatabase(
 
 class User(Model):
     name = CharField(unique=True)
+    email = CharField()
 
     class Meta:
         database = db
 
 
 def migrate_database():
+    connect()
     db.create_tables([User])
+    disconnect()
 
 
 def connect():
