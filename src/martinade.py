@@ -8,6 +8,7 @@ app.debug = True
 app.config["JWT_SECRET_KEY"] = "super-secret"  # TODO: Change this!
 jwt = JWTManager(app)
 
+
 # === CORS ===
 #
 #ALLOWLIST = ['http://localhost:8080','http://localhost:5000']
