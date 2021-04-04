@@ -43,7 +43,7 @@ def users():
     connect()
     if request.method == 'GET':
         users = [user.name for user in User.select()]
-        return users
+        return { 'users': users }
     elif request.method == 'POST':
         data = request.get_json()
         if User.select().where(User.name == data.get('name')).count() == 0:
