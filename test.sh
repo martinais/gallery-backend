@@ -15,17 +15,14 @@ be_query() {
   curl -sw "%{http_code}" \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
-    -X $1 "$URL_BASE/$2" $data; echo
+    -X $1 "$URL_BASE/$2" $data
 }
 
 test_create_user() {
   make reset &> /dev/null
-  first_code=$(
-    be_query 'POST' 'users' '{"name":"tristan","email":"tristan@tic.sh"}'
-  )
-  second_code=$(
-    be_query 'POST' 'users' '{"name":"tristan","email":"tristan@tic.sh"}'
-  )
+  data='{"name":"tristan","email":"tristan@tic.sh"}'
+  first_code=$(be_query 'POST' 'users' $data)
+  second_code=$(be_query 'POST' 'users' $data)
   insert=$(db_query 'select * from public.user' | wc -l)
   if [[ $insert -eq 2 && $first_code -eq 204 && $second_code -eq 409 ]]; then
     success 'test_create_user'
@@ -46,6 +43,19 @@ test_list_users() {
   fi
 }
 
-make down &> /dev/null && make up &> /dev/null
+test_login() {
+  make reset &> /dev/null
+  _=$(be_query 'POST' 'users' '{"name":"tristan","email":"tristan@tic.sh"}')
+  result=$(be_query 'POST' 'login' '{"name":"tristan"}')
+  body=$(echo $result | head -c -4)
+  code=$(echo $result | tail -c 4)
+  if [[ $code -eq 201 ]]; then
+    success 'test_login'
+  else
+    failure 'test_login'
+  fi
+}
+
 test_create_user
 test_list_users
+test_login

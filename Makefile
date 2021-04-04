@@ -10,7 +10,7 @@ up:
 	$(MAKE) reset
 
 reset:
-	$(PG_EXEC) -c "DROP DATABASE $(PG_DB)"
+	-$(PG_EXEC) -c '\l' | grep $(PG_DB) && $(PG_EXEC) -c "DROP DATABASE $(PG_DB)"
 	$(PG_EXEC) -c "CREATE DATABASE $(PG_DB)"
 	$(DOCKER) exec backend python -c 'import model; model.migrate_database()'
 
