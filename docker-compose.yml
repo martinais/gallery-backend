@@ -9,18 +9,25 @@ services:
       - 5000:5000
     depends_on:
       - database
+      - kvstore
     volumes:
       - ./src:/usr/src/app
     environment:
-      PASSWORD: postgres
-      DB_PORT: 5431
-      DB_USER: postgres
-      DB_PW: postgres
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_HOST: ${DB_HOST}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      MAILJET_API_KEY: ${MAILJET_API_KEY}
+      MAILJET_API_SECRET: ${MAILJET_API_SECRET}
+
+  kvstore:
+    image: redis
 
   database:
     image: postgres
     environment:
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DB_PASS}
 
 #  swagger:
 #    image: swaggerapi/swagger-ui

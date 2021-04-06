@@ -1,7 +1,7 @@
 PG_DB=gallery 		# TODO: take that from .env
 PG_USER=postgres 	# TODO: take that from .env
 
-DOCKER=docker-compose -p dev-backend
+DOCKER=docker-compose
 PG_EXEC=$(DOCKER) exec database psql -U $(PG_USER)
 
 up:
@@ -13,6 +13,7 @@ reset:
 	-$(PG_EXEC) -c '\l' | grep $(PG_DB) && $(PG_EXEC) -c "DROP DATABASE $(PG_DB)"
 	$(PG_EXEC) -c "CREATE DATABASE $(PG_DB)"
 	$(DOCKER) exec backend python -c 'import model; model.migrate_database()'
+	$(DOCKER) exec kvstore redis-cli flushdb
 
 down:
 	$(DOCKER) down --volumes

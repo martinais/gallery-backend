@@ -1,22 +1,12 @@
 from peewee import *
+from os import environ
 
 db = PostgresqlDatabase(
-    'gallery', user='postgres', password='postgres', host='database'
+    environ.get('DB_NAME'),
+    user=environ.get('DB_USER'),
+    password=environ.get('DB_PASS'),
+    host=environ.get('DB_HOST')
 )
-
-
-class User(Model):
-    name = CharField(unique=True)
-    email = CharField()
-
-    class Meta:
-        database = db
-
-
-def migrate_database():
-    connect()
-    db.create_tables([User])
-    disconnect()
 
 
 def connect():
@@ -26,3 +16,17 @@ def connect():
 
 def disconnect():
     db.close()
+
+
+def migrate_database():
+    connect()
+    db.create_tables([User])
+    disconnect()
+
+
+class User(Model):
+    name = CharField(unique=True)
+    email = CharField()
+
+    class Meta:
+        database = db
