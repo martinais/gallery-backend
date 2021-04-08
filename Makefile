@@ -1,28 +1,28 @@
-PG_DB=gallery 		# TODO: take that from .env
-PG_USER=postgres 	# TODO: take that from .env
+PGDB=gallery 		# TODO: take that from .env
+PGUSER=postgres 	# TODO: take that from .env
 
-DOCKER=docker-compose
-PG_EXEC=$(DOCKER) exec database psql -U $(PG_USER)
+DC=docker-compose
+PGEXEC=$(DC) exec database psql -U $(PGUSER)
 
 up:
-	$(DOCKER) build
-	$(DOCKER) up -d && sleep 3
+	$(DC) build
+	$(DC) up -d && sleep 3
 	$(MAKE) reset
 
 reset:
-	-$(PG_EXEC) -c '\l' | grep $(PG_DB) && $(PG_EXEC) -c "DROP DATABASE $(PG_DB)"
-	$(PG_EXEC) -c "CREATE DATABASE $(PG_DB)"
-	$(DOCKER) exec backend python -c 'import model; model.migrate_database()'
-	$(DOCKER) exec kvstore redis-cli flushdb
+	-$(PGEXEC) -c '\l' | grep $(PGDB) && $(PGEXEC) -c "DROP DATABASE $(PGDB)"
+	$(PGEXEC) -c "CREATE DATABASE $(PGDB)"
+	$(DC) exec backend python -c 'import model; model.migrate_database()'
+	$(DC) exec kvstore redis-cli flushdb
 
 down:
-	$(DOCKER) down --volumes
+	$(DC) down --volumes
 
 shell:
-	$(DOCKER) exec backend bash
+	$(DC) exec backend bash
 
 logs:
-	$(DOCKER) logs -f
+	$(DC) logs -f
 
 psql:
-	$(PG_EXEC) -d $(PG_DB)
+	$(PGEXEC) -d $(PGDB)
