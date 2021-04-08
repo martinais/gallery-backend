@@ -17,6 +17,8 @@ kvstore = redis.Redis(host='kvstore')
 jwtmanager = JWTManager(app)
 mailmanager = MailManager(app)
 
+ALLOWLIST = ['http://localhost:8080', 'http://localhost:5000']
+
 
 # TODO add calling function name before messages
 def debug(msg):
@@ -29,6 +31,21 @@ def warning(msg):
 
 def error(msg):
     app.logger.error(msg)
+
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin')
+    if origin in ALLOWLIST:
+        prefix = 'Access-Control-Allow-'
+        response.headers.add(prefix + 'Origin', origin)
+        response.headers.add(prefix + 'Credentials', 'true')
+        response.headers.add(prefix + 'Headers', 'Authorization')
+        response.headers.add(prefix + 'Headers', 'Content-Type')
+    return response
+#        response.headers.add(prefix + 'Headers', 'Cache-Control')
+#        response.headers.add(prefix + 'Headers', 'X-Requested-With')
+#        response.headers.add(prefix + 'Methods', 'GET, POST, OPTIONS, PUT, DELETE')
 
 
 @app.route('/')
@@ -75,6 +92,7 @@ def token():
         return jsonify(access_token=access_token), 201
     return '', 401
 
+
 @app.route('/users', methods=['GET'])
 @jwt_required()
 def users():
@@ -82,23 +100,3 @@ def users():
     users = [user.name for user in User.select()]
     return {'users': users}
     disconnect()
-
-
-# === CORS ===
-#
-#ALLOWLIST = ['http://localhost:8080','http://localhost:5000']
-#
-# @app.after_request
-# def add_cors_headers(response):
-#    origin = request.headers.get('Origin')
-#    if origin in ALLOWLIST:
-#        response.headers.add('Access-Control-Allow-Origin', origin)
-#        response.headers.add('Access-Control-Allow-Credentials', 'true')
-#        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-#        response.headers.add('Access-Control-Allow-Headers', 'Cache-Control')
-#        response.headers.add('Access-Control-Allow-Headers', 'X-Requested-With')
-#        response.headers.add('Access-Control-Allow-Headers', 'Authorization')
-#        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE')
-#    return response
-#
-# ============
