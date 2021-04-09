@@ -8,6 +8,7 @@ from mail import MailManager
 
 app = Flask(__name__)
 app.debug = True
+# TODO configure expiration on JWT token
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
 app.config["MAILJET_API_SECRET"] = os.environ.get('MAILJET_API_SECRET')
@@ -43,9 +44,6 @@ def add_cors_headers(response):
         response.headers.add(prefix + 'Headers', 'Authorization')
         response.headers.add(prefix + 'Headers', 'Content-Type')
     return response
-#        response.headers.add(prefix + 'Headers', 'Cache-Control')
-#        response.headers.add(prefix + 'Headers', 'X-Requested-With')
-#        response.headers.add(prefix + 'Methods', 'GET, POST, OPTIONS, PUT, DELETE')
 
 
 @app.route('/')
@@ -61,7 +59,7 @@ def login():
         warning('Bad username or password.')
     else:
         pin = secrets.token_hex(4).upper()
-        if not kvstore.set(pin, name):
+        if not kvstore.set(pin, name):  # TODO : EXPIRE the pin code
             error('Unable to store pin code.')
             disconnect()
             return jsonify(msg='Unable to store pin code.'), 500
@@ -86,7 +84,7 @@ def signin():
 @app.route('/token', methods=['POST'])
 def token():
     data = request.get_json()
-    name = kvstore.get(data['code'])
+    name = kvstore.get(data['code'])  # TODO : DELETE the pin code
     if name:
         access_token = create_access_token(identity=name.decode())
         return jsonify(access_token=access_token), 201
