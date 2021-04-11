@@ -2,6 +2,7 @@ FROM python:3-alpine AS base
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev
 RUN pip install -r requirements.txt
 COPY ./src .
 
