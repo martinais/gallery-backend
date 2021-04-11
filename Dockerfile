@@ -1,4 +1,4 @@
-FROM python:3 AS base
+FROM python:3-alpine AS base
 
 WORKDIR /usr/src/app
 COPY requirements.txt ./
