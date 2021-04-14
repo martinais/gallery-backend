@@ -3,7 +3,7 @@ import os
 import secrets
 from flask import Flask, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
-from model import User, migrate_database, connect, disconnect
+from model import migrate_database, connect, disconnect, User, Album
 from mail import MailManager
 
 app = Flask(__name__)
@@ -72,6 +72,7 @@ def login():
 def signin():
     connect()
     data = request.get_json()
+    # TODO : expect uniqueness of name from model and remove the next line
     if User.select().where(User.name == data.get('name')).count() == 0:
         if User(name=data.get('name'), email=data.get('email')).save():
             disconnect()
@@ -97,4 +98,17 @@ def users():
     connect()
     users = [user.name for user in User.select()]
     return {'users': users}
+    disconnect()
+
+
+@app.route('/albums', methods=['POST'])
+@jwt_required()
+def albums():
+    connect()
+    data = request.get_json()
+    album = Album(name=data.get('name'))
+    # TODO : expect album uniqueness
+    if not album.save():
+        error('unable to create an album')
+    return album.serialize(), 201
     disconnect()

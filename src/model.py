@@ -1,5 +1,7 @@
 from peewee import *
 from os import environ
+from slugify import slugify
+import json
 
 db = PostgresqlDatabase(
     environ.get('DB_NAME'),
@@ -20,7 +22,7 @@ def disconnect():
 
 def migrate_database():
     connect()
-    db.create_tables([User])
+    db.create_tables([User, Album])
     disconnect()
 
 
@@ -30,3 +32,19 @@ class User(Model):
 
     class Meta:
         database = db
+
+
+class Album(Model):
+    name = CharField(unique=True)
+    slug = CharField(unique=True)
+
+    class Meta:
+        database = db
+
+    def __init__(self, *args, **kwargs):
+        if not 'slug' in kwargs:
+            kwargs['slug'] = slugify(kwargs.get('name'))
+        super().__init__(*args, **kwargs)
+
+    def serialize(self):
+        return json.dumps({"slug": self.slug, "name": self.name})

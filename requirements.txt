@@ -4,3 +4,4 @@ psycopg2
 flask-jwt-extended
 mailjet_rest
 redis
+python-slugify

@@ -11,13 +11,19 @@ rd_query() { dc_exec kvstore redis-cli --raw "$@"; }
 db_query() { dc_exec database psql --csv -U postgres -d gallery -c "$1"; }
 be_query() {
   token=$1; method=$2; path=$3; data=$4
-  send=$([[ "$method" == "POST" || "$method" == "PUT" ]] && echo -d $data)
-  auth=$(test -z "$token" || echo "-H 'Authorization: \"Bearer $token\"'")
-  curl -sw "%{http_code}" \
-    -H 'Content-Type: application/json' \
-    -H 'Accept: application/json' \
-    -H "Authorization: Bearer $token" \
-    -X $method "$URL_BASE/$path" $send
+  if [[ "$method" == "POST" || "$method" == "PUT" || "$method" == "PATCH" ]]
+  then
+    curl -sw "%{http_code}" \
+      -H 'Content-Type: application/json' \
+      -H 'Accept: application/json' \
+      -H "Authorization: Bearer $token" \
+      -X "$method" "$URL_BASE/$path" --data "$data"
+  else
+    curl -sw "%{http_code}" \
+      -H 'Accept: application/json' \
+      -H "Authorization: Bearer $token" \
+      -X "$method" "$URL_BASE/$path"
+  fi
 }
 
 signin() { be_query '' 'POST' 'signin' '{"name":"test","email":"test@te.st"}'; }
@@ -76,9 +82,9 @@ test_create_album() {
   pin=$(rd_query keys '*' | tr -d '\r')
   auth=$(echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"')
   result=$(be_query $auth 'POST' 'albums' '{"name":"Nouvel An 2021"}')
-  body=$(echo $result | head -c -4 | tr -d ' ')
+  body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
-  expect='{"slug":"nouvel_an_2021","name":"Nouvel An 2021"}'
+  expect='{"slug": "nouvel-an-2021", "name": "Nouvel An 2021"}'
   if [[ $code -eq 201 && "$body" == "$expect" ]]; then
     success 'test_create_album'
   else
