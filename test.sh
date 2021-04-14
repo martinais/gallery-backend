@@ -70,6 +70,23 @@ test_list_users() {
   fi
 }
 
+test_create_album() {
+  make reset &> /dev/null
+  signin > /dev/null; login > /dev/null;
+  pin=$(rd_query keys '*' | tr -d '\r')
+  auth=$(echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"')
+  result=$(be_query $auth 'POST' 'albums' '{"name":"Nouvel An 2021"}')
+  body=$(echo $result | head -c -4 | tr -d ' ')
+  code=$(echo $result | tail -c 4)
+  expect='{"slug":"nouvel_an_2021","name":"Nouvel An 2021"}'
+  if [[ $code -eq 201 && "$body" == "$expect" ]]; then
+    success 'test_create_album'
+  else
+    failure 'test_create_album'
+  fi
+}
+
 test_signin
 test_login_access
 test_list_users
+test_create_album
