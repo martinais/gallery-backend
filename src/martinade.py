@@ -101,14 +101,18 @@ def users():
     disconnect()
 
 
-@app.route('/albums', methods=['POST'])
+@app.route('/albums', methods=['POST', 'GET'])
 @jwt_required()
 def albums():
     connect()
-    data = request.get_json()
-    album = Album(name=data.get('name'))
-    # TODO : expect album uniqueness
-    if not album.save():
-        error('unable to create an album')
-    return album.serialize(), 201
+    if request.method == 'GET':
+        response = jsonify([album.asdict() for album in Album.select()])
+    elif request.method == 'POST':
+        data = request.get_json()
+        album = Album(name=data.get('name'))
+        # TODO : expect album uniqueness
+        if not album.save():
+            error('unable to create an album')
+        response = jsonify(album.asdict()), 201
     disconnect()
+    return response

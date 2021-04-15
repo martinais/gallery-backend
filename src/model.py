@@ -1,7 +1,6 @@
 from peewee import *
 from os import environ
 from slugify import slugify
-import json
 
 db = PostgresqlDatabase(
     environ.get('DB_NAME'),
@@ -46,5 +45,5 @@ class Album(Model):
             kwargs['slug'] = slugify(kwargs.get('name'))
         super().__init__(*args, **kwargs)
 
-    def serialize(self):
-        return json.dumps({"slug": self.slug, "name": self.name})
+    def asdict(self):
+        return {"slug": self.slug, "name": self.name}

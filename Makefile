@@ -19,7 +19,7 @@ down:
 	$(DC) down --volumes
 
 shell:
-	$(DC) exec backend bash
+	$(DC) exec backend sh
 
 logs:
 	$(DC) logs -f

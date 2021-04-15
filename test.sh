@@ -81,10 +81,10 @@ test_create_album() {
   signin > /dev/null; login > /dev/null;
   pin=$(rd_query keys '*' | tr -d '\r')
   auth=$(echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"')
-  result=$(be_query $auth 'POST' 'albums' '{"name":"Nouvel An 2021"}')
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Nouvel An 2021"}')
   body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
-  expect='{"slug": "nouvel-an-2021", "name": "Nouvel An 2021"}'
+  expect='{ "name": "Nouvel An 2021", "slug": "nouvel-an-2021" } '
   if [[ $code -eq 201 && "$body" == "$expect" ]]; then
     success 'test_create_album'
   else
@@ -97,10 +97,10 @@ test_list_albums() {
   signin > /dev/null; login > /dev/null;
   pin=$(rd_query keys '*' | tr -d '\r')
   auth=$(echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"')
-  result=$(be_query $auth 'POST' 'albums' '{"name":"A"}')
-  result=$(be_query $auth 'POST' 'albums' '{"name":"B"}')
-  expect='{"albums": [{"slug": "a", "name": "A"}, {"slug": "b", "name": "B"}]}'
-  result=$(be_query $auth 'GET' 'albums')
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"A"}')
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"B"}')
+  result=$(be_query "$auth" 'GET' 'albums')
+  expect='[ { "name": "A", "slug": "a" }, { "name": "B", "slug": "b" } ] '
   body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
   if [[ $code -eq 200 && "$body" == "$expect" ]]; then
