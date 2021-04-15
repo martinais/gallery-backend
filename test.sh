@@ -92,7 +92,26 @@ test_create_album() {
   fi
 }
 
+test_list_albums() {
+  make reset &> /dev/null
+  signin > /dev/null; login > /dev/null;
+  pin=$(rd_query keys '*' | tr -d '\r')
+  auth=$(echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"')
+  result=$(be_query $auth 'POST' 'albums' '{"name":"A"}')
+  result=$(be_query $auth 'POST' 'albums' '{"name":"B"}')
+  expect='{"albums": [{"slug": "a", "name": "A"}, {"slug": "b", "name": "B"}]}'
+  result=$(be_query $auth 'GET' 'albums')
+  body=$(echo $result | head -c -4)
+  code=$(echo $result | tail -c 4)
+  if [[ $code -eq 200 && "$body" == "$expect" ]]; then
+    success 'test_list_albums'
+  else
+    failure 'test_list_albums'
+  fi
+}
+
 test_signin
 test_login_access
 test_list_users
 test_create_album
+test_list_albums
