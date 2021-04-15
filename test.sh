@@ -108,8 +108,24 @@ test_list_albums() {
   fi
 }
 
+test_get_album() {
+  auth=$(authenticate)
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Album Test"}')
+  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
+  result=$(be_query "$auth" 'GET' "albums/$slug")
+  body=$(echo $result | head -c -4)
+  code=$(echo $result | tail -c 4)
+  expect='{ "name": "Album Test", "slug": "album-test" } '
+  if [[ $code -eq 200 && "$body" == "$expect" ]]; then
+    success 'test_get_album'
+  else
+    failure 'test_get_album'
+  fi
+}
+
 test_signin
 test_login_access
 test_list_users
 test_create_album
 test_list_albums
+test_get_album

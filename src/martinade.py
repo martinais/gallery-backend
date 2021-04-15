@@ -116,3 +116,12 @@ def albums():
         response = jsonify(album.asdict()), 201
     disconnect()
     return response
+
+@app.route('/albums/<slug>', methods=['GET'])
+@jwt_required()
+def album(slug):
+    connect()
+    if request.method == 'GET':
+        response = Album.get(slug == slug).asdict()
+    disconnect()
+    return response
