@@ -123,9 +123,25 @@ test_get_album() {
   fi
 }
 
+test_remove_album() {
+  auth=$(authenticate)
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
+  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
+  result=$(be_query "$auth" 'DELETE' "albums/$slug")
+  code=$(echo $result | tail -c 4)
+  result=$(be_query "$auth" 'GET' 'albums')
+  body=$(echo $result | head -c -4)
+  if [[ $code -eq 204 && "$body" == "[] " ]]; then
+    success 'test_get_album'
+  else
+    failure 'test_get_album'
+  fi
+}
+
 test_signin
 test_login_access
 test_list_users
 test_create_album
 test_list_albums
 test_get_album
+test_remove_album

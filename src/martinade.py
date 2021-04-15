@@ -117,11 +117,15 @@ def albums():
     disconnect()
     return response
 
-@app.route('/albums/<slug>', methods=['GET'])
+
+@app.route('/albums/<slug>', methods=['GET', 'DELETE'])
 @jwt_required()
 def album(slug):
     connect()
     if request.method == 'GET':
         response = Album.get(slug == slug).asdict()
+    if request.method == 'DELETE':
+        if Album.get(slug == slug).delete_instance():
+            response = '', 204
     disconnect()
     return response
