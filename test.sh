@@ -61,11 +61,15 @@ test_login_access() {
   fi
 }
 
-test_list_users() {
+authenticate() {
   make reset &> /dev/null
   signin > /dev/null; login > /dev/null;
   pin=$(rd_query keys '*' | tr -d '\r')
-  auth=$(echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"')
+  echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"'
+}
+
+test_list_users() {
+  auth=$(authenticate)
   result=$(be_query $auth 'GET' 'users')
   body=$(echo $result | head -c -4 | tr -d ' ')
   code=$(echo $result | tail -c 4)
@@ -77,10 +81,7 @@ test_list_users() {
 }
 
 test_create_album() {
-  make reset &> /dev/null
-  signin > /dev/null; login > /dev/null;
-  pin=$(rd_query keys '*' | tr -d '\r')
-  auth=$(echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"')
+  auth=$(authenticate)
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"Nouvel An 2021"}')
   body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
@@ -93,10 +94,7 @@ test_create_album() {
 }
 
 test_list_albums() {
-  make reset &> /dev/null
-  signin > /dev/null; login > /dev/null;
-  pin=$(rd_query keys '*' | tr -d '\r')
-  auth=$(echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"')
+  auth=$(authenticate)
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"A"}')
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"B"}')
   result=$(be_query "$auth" 'GET' 'albums')
