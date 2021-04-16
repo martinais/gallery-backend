@@ -55,17 +55,19 @@ def index():
 def login():
     connect()
     name = request.json.get("name", None)
+    response = ('', 204)
     if User.select().where(User.name == name).count() == 0:
         warning('Bad username or password.')
     else:
         pin = secrets.token_hex(4).upper()
         if not kvstore.set(pin, name):  # TODO : EXPIRE the pin code
             error('Unable to store pin code.')
-            disconnect()
-            return jsonify(msg='Unable to store pin code.'), 500
-        mailmanager.send_login_mail(User.get(User.name == name), pin)
+            response = (jsonify(msg='Unable to store pin code.'), 500)
+        if not mailmanager.send_login_mail(User.get(User.name == name), pin):
+            error('unable to send mail')
+            response = ('Unable to send mail.', 500)
     disconnect()
-    return '', 204
+    return response
 
 
 @app.route('/signin', methods=['POST'])

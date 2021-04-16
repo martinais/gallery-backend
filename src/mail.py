@@ -35,4 +35,4 @@ class MailManager:
     def send_login_mail(self, user, code):
         data = self.build_login_body(user, code)
         result = self.client.send.create(data=data)
-        return result.status_code
+        return result.status_code == 200
