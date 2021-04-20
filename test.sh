@@ -132,9 +132,25 @@ test_remove_album() {
   result=$(be_query "$auth" 'GET' 'albums')
   body=$(echo $result | head -c -4)
   if [[ $code -eq 204 && "$body" == "[] " ]]; then
-    success 'test_get_album'
+    success 'test_remove_album'
   else
-    failure 'test_get_album'
+    failure 'test_remove_album'
+  fi
+}
+
+test_upload_picture() {
+  auth=$(authenticate)
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
+  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
+  filehash=$(md5sum test.png | cut -d ' ' -f 1)
+  curl -H "Authorization: Bearer $auth" \
+    -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
+  curl -H "Authorization: Bearer $auth" \
+    -so '/tmp/test.png' http://localhost:5000/pic/$filehash
+  if [[ "$(md5sum '/tmp/test.png' | cut -d ' ' -f 1)" == "$filehash" ]]; then
+    success 'test_upload_picture'
+  else
+    failure 'test_upload_picture'
   fi
 }
 
@@ -145,3 +161,4 @@ test_create_album
 test_list_albums
 test_get_album
 test_remove_album
+test_upload_picture

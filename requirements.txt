@@ -5,3 +5,4 @@ flask-jwt-extended
 mailjet_rest
 redis
 python-slugify
+python-magic

@@ -1,8 +1,12 @@
 import redis
 import os
+import magic
 import secrets
-from flask import Flask, jsonify, request
+
+from flask import Flask, jsonify, request, send_from_directory
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+from werkzeug.utils import secure_filename
+
 from model import migrate_database, connect, disconnect, User, Album
 from mail import MailManager
 
@@ -12,6 +16,9 @@ app.debug = True
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
 app.config["MAILJET_API_SECRET"] = os.environ.get('MAILJET_API_SECRET')
+app.config["UPLOAD_FOLDER"] = '/srv/data/pics/'
+
+ALLOWED_MIMETYPES = ['image/png', 'image/jpg']
 
 kvstore = redis.Redis(host='kvstore')
 
@@ -43,6 +50,7 @@ def add_cors_headers(response):
         response.headers.add(prefix + 'Credentials', 'true')
         response.headers.add(prefix + 'Headers', 'Authorization')
         response.headers.add(prefix + 'Headers', 'Content-Type')
+        response.headers.add(prefix + 'Methods', 'DELETE')
     return response
 
 
@@ -125,9 +133,34 @@ def albums():
 def album(slug):
     connect()
     if request.method == 'GET':
-        response = Album.get(slug == slug).asdict()
+        response = Album.get(Album.slug == slug).asdict()
     if request.method == 'DELETE':
-        if Album.get(slug == slug).delete_instance():
+        if Album.get(Album.slug == slug).delete_instance():
             response = '', 204
     disconnect()
+    return response
+
+
+@app.route('/pic/<filehash>', methods=['PUT', 'GET'])
+@jwt_required()
+def pic(filehash):
+    # TODO : https://flask.palletsprojects.com/en/1.1.x/patterns/fileuploads/
+    response = '', 204
+    if request.method == 'GET':
+        return send_from_directory(
+            app.config['UPLOAD_FOLDER'], filehash, as_attachment=True
+        )
+    if request.method == 'PUT':
+        if 'file' not in request.files:
+            warning('no file part')
+            return response
+        file = request.files['file']
+        if file.filename == '':
+            warning('no file selected')
+            return response
+        if magic.from_buffer(file.read(2048), mime=True) in ALLOWED_MIMETYPES:
+            file.seek(0)
+            # TODO store this somewhere (in exif ?)
+            #filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filehash))
     return response
