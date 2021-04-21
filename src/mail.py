@@ -20,7 +20,7 @@ class MailManager:
             'Messages': [
                 {
                     "From": {
-                        "Email": "tristan+mailjet@tic.sh",
+                        "Email": "noreply@martinade.fr",
                         "Name": "tristan"
                     },
                     "To": [{"Email": user.email, "Name": user.name}],
