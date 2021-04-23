@@ -154,6 +154,38 @@ test_upload_picture() {
   fi
 }
 
+test_link_pic_to_album() {
+  auth=$(authenticate)
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
+  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
+  filehash=$(md5sum test.png | cut -d ' ' -f 1)
+  curl -s -H "Authorization: Bearer $auth" \
+    -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
+  result=$(curl -sw "%{http_code}" \
+    -X PUT "http://localhost:5000/albums/$slug/pics" \
+    -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer $auth" \
+    -d "{\"pics\":[\"$filehash\"]}")
+  code=$(echo $result | tail -c 4)
+  body=$(echo $result | head -c -4)
+  if [[ $code -eq 204 ]]; then
+    success 'test_add_pics_to_album'
+  else
+    failure 'test_add_pics_to_album'
+  fi
+  result=$(curl -sw "%{http_code}" "http://localhost:5000/albums/$slug/pics" \
+    -H 'Accept: application/json' \
+    -H "Authorization: Bearer $auth")
+  code=$(echo $result | tail -c 4)
+  body=$(echo $result | head -c -4)
+  expect="{ \"pics\": [ \"$filehash\" ] } "
+  if [[ $code -eq 200 && "$body" == "$expect" ]]; then
+    success 'test_get_pics_from_album'
+  else
+    failure 'test_get_pics_from_album'
+  fi
+}
+
 test_signin
 test_login_access
 test_list_users
@@ -162,3 +194,4 @@ test_list_albums
 test_get_album
 test_remove_album
 test_upload_picture
+test_link_pic_to_album

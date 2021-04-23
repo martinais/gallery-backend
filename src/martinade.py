@@ -141,6 +141,17 @@ def album(slug):
     return response
 
 
+@app.route('/albums/<slug>/pics', methods=['PUT', 'GET'])
+@jwt_required()
+def ablum_pics(slug):
+    response = '', 204
+    if request.method == 'GET':
+        response = jsonify(pics=Album.get(Album.slug == slug).pics)
+    if request.method == 'PUT':
+        Album.get(Album.slug == slug).add_pics(request.get_json()['pics'])
+    return response
+
+
 @app.route('/pic/<filehash>', methods=['PUT', 'GET'])
 @jwt_required()
 def pic(filehash):
