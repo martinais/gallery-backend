@@ -64,3 +64,9 @@ class Album(Model):
             pic_path = os.path.join(BASE_PATH, 'pics', filehash)
             if os.path.exists(pic_path) and not os.path.exists(album_path):
                 os.symlink(pic_path, album_path)
+
+    def remove_pics(self, pics):
+        for filehash in pics:
+            album_path = os.path.join(self.path, filehash)
+            if os.path.exists(album_path):
+                os.remove(album_path)

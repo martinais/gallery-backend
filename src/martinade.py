@@ -18,7 +18,7 @@ app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
 app.config["MAILJET_API_SECRET"] = os.environ.get('MAILJET_API_SECRET')
 app.config["UPLOAD_FOLDER"] = '/srv/data/pics/'
 
-ALLOWED_MIMETYPES = ['image/png', 'image/jpg']
+ALLOWED_MIMETYPES = ['image/png', 'image/jpeg']
 
 kvstore = redis.Redis(host='kvstore')
 
@@ -50,7 +50,7 @@ def add_cors_headers(response):
         response.headers.add(prefix + 'Credentials', 'true')
         response.headers.add(prefix + 'Headers', 'Authorization')
         response.headers.add(prefix + 'Headers', 'Content-Type')
-        response.headers.add(prefix + 'Methods', 'DELETE')
+        response.headers.add(prefix + 'Methods', 'DELETE,PUT')
     return response
 
 
@@ -141,14 +141,23 @@ def album(slug):
     return response
 
 
-@app.route('/albums/<slug>/pics', methods=['PUT', 'GET'])
+@app.route('/albums/<slug>/pics', methods=['PATCH', 'GET'])
 @jwt_required()
 def ablum_pics(slug):
     response = '', 204
     if request.method == 'GET':
         response = jsonify(pics=Album.get(Album.slug == slug).pics)
-    if request.method == 'PUT':
-        Album.get(Album.slug == slug).add_pics(request.get_json()['pics'])
+    if request.method == 'PATCH':
+        body = request.get_json()
+        toadd = body.get('+')
+        toremove = body.get('-')
+        if toadd:
+            Album.get(Album.slug == slug).add_pics(toadd)
+        elif toremove:
+            Album.get(Album.slug == slug).remove_pics(toremove)
+        else:
+            error("wrong key in request: " + body)
+            response = 'A `+` or `-` key is missing', 400
     return response
 
 
