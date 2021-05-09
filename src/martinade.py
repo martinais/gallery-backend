@@ -50,7 +50,7 @@ def add_cors_headers(response):
         response.headers.add(prefix + 'Credentials', 'true')
         response.headers.add(prefix + 'Headers', 'Authorization')
         response.headers.add(prefix + 'Headers', 'Content-Type')
-        response.headers.add(prefix + 'Methods', 'DELETE,PUT')
+        response.headers.add(prefix + 'Methods', 'DELETE,PUT,PATCH')
     return response
 
 
