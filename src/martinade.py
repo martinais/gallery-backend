@@ -11,7 +11,7 @@ from model import migrate_database, connect, disconnect, User, Album
 from mail import MailManager
 
 app = Flask(__name__)
-app.debug = True
+app.debug = False
 # TODO configure expiration on JWT token
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
