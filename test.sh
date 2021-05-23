@@ -85,7 +85,7 @@ test_create_album() {
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"Nouvel An 2021"}')
   body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
-  expect='{ "name": "Nouvel An 2021", "slug": "nouvel-an-2021" } '
+  expect='{ "count": 0, "name": "Nouvel An 2021", "slug": "nouvel-an-2021" } '
   if [[ $code -eq 201 && "$body" == "$expect" ]]; then
     success 'test_create_album'
   else
@@ -98,7 +98,7 @@ test_list_albums() {
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"A"}')
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"B"}')
   result=$(be_query "$auth" 'GET' 'albums')
-  expect='[ { "name": "A", "slug": "a" }, { "name": "B", "slug": "b" } ] '
+  expect='[ { "count": 0, "name": "A", "slug": "a" }, { "count": 0, "name": "B", "slug": "b" } ] '
   body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
   if [[ $code -eq 200 && "$body" == "$expect" ]]; then
@@ -115,7 +115,7 @@ test_get_album() {
   result=$(be_query "$auth" 'GET' "albums/$slug")
   body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
-  expect='{ "name": "Album Test", "slug": "album-test" } '
+  expect='{ "count": 0, "name": "Album Test", "slug": "album-test" } '
   if [[ $code -eq 200 && "$body" == "$expect" ]]; then
     success 'test_get_album'
   else
@@ -189,6 +189,17 @@ test_link_pic_to_album() {
     success 'test_get_pics_from_album'
   else
     failure 'test_get_pics_from_album'
+  fi
+
+  # verify number of pics in album details
+  result=$(be_query "$auth" 'GET' "albums/$slug")
+  body=$(echo $result | head -c -4)
+  code=$(echo $result | tail -c 4)
+  expect='{ "count": 1, "name": "Test", "slug": "test" } '
+  if [[ $code -eq 200 && "$body" == "$expect" ]]; then
+    success 'test_get_album_with_pics'
+  else
+    failure 'test_get_album_with_pics'
   fi
 
   # remove pic from album

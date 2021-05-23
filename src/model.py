@@ -62,7 +62,7 @@ class Album(Model):
         super().__init__(*args, **kwargs)
 
     def asdict(self):
-        return {"slug": self.slug, "name": self.name}
+        return {"slug": self.slug, "name": self.name, "count": len(self.pics)}
 
     def add_pics(self, pics):
         for filehash in pics:
