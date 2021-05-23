@@ -34,6 +34,12 @@ class User(Model):
     class Meta:
         database = db
 
+    def exists(name):
+        return User.find(name).count() > 0
+
+    def find(name):
+        return User.select().where(User.name == name)
+
 
 class Album(Model):
     path = os.path.join(BASE_PATH, "albums")

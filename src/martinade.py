@@ -11,7 +11,7 @@ from model import migrate_database, connect, disconnect, User, Album
 from mail import MailManager
 
 app = Flask(__name__)
-app.debug = False
+app.debug = True
 # TODO configure expiration on JWT token
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
@@ -64,7 +64,7 @@ def login():
     connect()
     name = request.json.get("name", None)
     response = ('', 204)
-    if User.select().where(User.name == name).count() == 0:
+    if not User.exists(name):
         warning('Bad username or password.')
     else:
         pin = secrets.token_hex(4).upper()
@@ -83,7 +83,7 @@ def signin():
     connect()
     data = request.get_json()
     # TODO : expect uniqueness of name from model and remove the next line
-    if User.select().where(User.name == data.get('name')).count() == 0:
+    if not User.exists(data.get('name')):
         if User(name=data.get('name'), email=data.get('email')).save():
             disconnect()
             return '', 204
