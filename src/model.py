@@ -81,3 +81,8 @@ class Album(Model):
             album_path = os.path.join(self.path, filehash)
             if os.path.exists(album_path):
                 os.remove(album_path)
+
+    def xremove(self, debug):
+        self.remove_pics(self.pics)
+        os.rmdir(self.path)
+        return self.delete_instance()

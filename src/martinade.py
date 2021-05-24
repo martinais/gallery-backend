@@ -135,7 +135,7 @@ def album(slug):
     if request.method == 'GET':
         response = Album.get(Album.slug == slug).asdict()
     if request.method == 'DELETE':
-        if Album.get(Album.slug == slug).delete_instance():
+        if Album.get(Album.slug == slug).xremove(debug):
             response = '', 204
     disconnect()
     return response

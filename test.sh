@@ -123,21 +123,6 @@ test_get_album() {
   fi
 }
 
-test_remove_album() {
-  auth=$(authenticate)
-  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
-  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
-  result=$(be_query "$auth" 'DELETE' "albums/$slug")
-  code=$(echo $result | tail -c 4)
-  result=$(be_query "$auth" 'GET' 'albums')
-  body=$(echo $result | head -c -4)
-  if [[ $code -eq 204 && "$body" == "[] " ]]; then
-    success 'test_remove_album'
-  else
-    failure 'test_remove_album'
-  fi
-}
-
 test_upload_picture() {
   auth=$(authenticate)
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
@@ -230,12 +215,67 @@ test_link_pic_to_album() {
   fi
 }
 
+test_remove_album() {
+  auth=$(authenticate)
+
+  # add album
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
+  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
+
+  # send file
+  filehash=$(md5sum test.png | cut -d ' ' -f 1)
+  curl -s -H "Authorization: Bearer $auth" \
+    -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
+
+  # add pic to album
+  result=$(curl -sw "%{http_code}" \
+    -X PATCH "http://localhost:5000/albums/$slug/pics" \
+    -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer $auth" \
+    -d "{\"+\":[\"$filehash\"]}")
+  code=$(echo $result | tail -c 4)
+  body=$(echo $result | head -c -4)
+  if [[ $code -eq 204 ]]; then
+    success 'test_add_pics_to_album'
+  else
+    failure 'test_add_pics_to_album'
+  fi
+
+  # delete album
+  result=$(be_query "$auth" 'DELETE' "albums/$slug")
+  code=$(echo $result | tail -c 4)
+  result=$(be_query "$auth" 'GET' 'albums')
+  body=$(echo $result | head -c -4)
+  if [[ $code -eq 204 && "$body" == "[] " ]]; then
+    success 'test_remove_album'
+  else
+    failure 'test_remove_album'
+  fi
+
+  # add album again
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
+  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
+
+  # verify that pic did not survive album's deletion
+  result=$(curl -sw "%{http_code}" "http://localhost:5000/albums/$slug/pics" \
+    -H 'Accept: application/json' \
+    -H "Authorization: Bearer $auth")
+  code=$(echo $result | tail -c 4)
+  body=$(echo $result | head -c -4)
+  expect="{ \"pics\": [] } "
+  if [[ $code -eq 200 && "$body" == "$expect" ]]; then
+    success 'test_remove_album_is_persistant'
+  else
+    failure 'test_remove_album_is_persistant'
+  fi
+}
+
 test_signin
 test_login_access
 test_list_users
 test_create_album
 test_list_albums
 test_get_album
-test_remove_album
 test_upload_picture
 test_link_pic_to_album
+test_remove_album
