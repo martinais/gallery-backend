@@ -150,11 +150,7 @@ test_link_pic_to_album() {
     -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
 
   # add pic to album
-  result=$(curl -sw "%{http_code}" \
-    -X PATCH "http://localhost:5000/albums/$slug/pics" \
-    -H 'Content-Type: application/json' \
-    -H "Authorization: Bearer $auth" \
-    -d "{\"+\":[\"$filehash\"]}")
+  result=$(be_query "$auth" 'PATCH' "albums/$slug/pics" "{\"+\":[\"$filehash\"]}")
   code=$(echo $result | tail -c 4)
   body=$(echo $result | head -c -4)
   if [[ $code -eq 204 ]]; then
@@ -164,9 +160,7 @@ test_link_pic_to_album() {
   fi
 
   # verify that pic has been added
-  result=$(curl -sw "%{http_code}" "http://localhost:5000/albums/$slug/pics" \
-    -H 'Accept: application/json' \
-    -H "Authorization: Bearer $auth")
+  result=$(be_query "$auth" 'GET' "albums/$slug/pics")
   code=$(echo $result | tail -c 4)
   body=$(echo $result | head -c -4)
   expect="{ \"pics\": [ \"$filehash\" ] } "
@@ -188,11 +182,7 @@ test_link_pic_to_album() {
   fi
 
   # remove pic from album
-  result=$(curl -sw "%{http_code}" \
-    -X PATCH "http://localhost:5000/albums/$slug/pics" \
-    -H 'Content-Type: application/json' \
-    -H "Authorization: Bearer $auth" \
-    -d "{\"-\":[\"$filehash\"]}")
+  result=$(be_query "$auth" 'PATCH' "albums/$slug/pics" "{\"-\":[\"$filehash\"]}")
   code=$(echo $result | tail -c 4)
   body=$(echo $result | head -c -4)
   if [[ $code -eq 204 ]]; then
@@ -202,9 +192,7 @@ test_link_pic_to_album() {
   fi
 
   # verify that pic has been removed
-  result=$(curl -sw "%{http_code}" "http://localhost:5000/albums/$slug/pics" \
-    -H 'Accept: application/json' \
-    -H "Authorization: Bearer $auth")
+  result=$(be_query "$auth" 'GET' "albums/$slug/pics")
   code=$(echo $result | tail -c 4)
   body=$(echo $result | head -c -4)
   expect="{ \"pics\": [] } "
@@ -228,11 +216,7 @@ test_remove_album() {
     -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
 
   # add pic to album
-  result=$(curl -sw "%{http_code}" \
-    -X PATCH "http://localhost:5000/albums/$slug/pics" \
-    -H 'Content-Type: application/json' \
-    -H "Authorization: Bearer $auth" \
-    -d "{\"+\":[\"$filehash\"]}")
+  result=$(be_query "$auth" 'PATCH' "albums/$slug/pics" "{\"+\":[\"$filehash\"]}")
   code=$(echo $result | tail -c 4)
   body=$(echo $result | head -c -4)
   if [[ $code -eq 204 ]]; then
@@ -257,9 +241,7 @@ test_remove_album() {
   slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
 
   # verify that pic did not survive album's deletion
-  result=$(curl -sw "%{http_code}" "http://localhost:5000/albums/$slug/pics" \
-    -H 'Accept: application/json' \
-    -H "Authorization: Bearer $auth")
+  result=$(be_query "$auth" 'GET' "albums/$slug/pics")
   code=$(echo $result | tail -c 4)
   body=$(echo $result | head -c -4)
   expect="{ \"pics\": [] } "
