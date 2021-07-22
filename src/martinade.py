@@ -118,12 +118,15 @@ def albums():
     if request.method == 'GET':
         response = jsonify([album.asdict() for album in Album.select()])
     elif request.method == 'POST':
-        data = request.get_json()
-        album = Album(name=data.get('name'))
-        # TODO : expect album uniqueness
-        if not album.save():
-            error('unable to create an album')
-        response = jsonify(album.asdict()), 201
+        album_name = request.get_json().get('name')
+        if not album_name:
+            response = 'An album should have a name.', 400
+        else:
+            album = Album(name=album_name)
+            # TODO : expect album uniqueness
+            if not album.save():
+                error('unable to create an album')
+            response = jsonify(album.asdict()), 201
     disconnect()
     return response
 

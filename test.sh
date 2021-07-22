@@ -252,6 +252,17 @@ test_remove_album() {
   fi
 }
 
+test_upload_unamed_album() {
+  auth=$(authenticate)
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":""}')
+  code=$(echo $result | tail -c 4)
+  if [[ $code -eq 400 ]]; then
+    success 'test_upload_unamed_album'
+  else
+    failure 'test_upload_unamed_album'
+  fi
+}
+
 test_signin
 test_login_access
 test_list_users
@@ -261,3 +272,4 @@ test_get_album
 test_upload_picture
 test_link_pic_to_album
 test_remove_album
+test_upload_unamed_album
