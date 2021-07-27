@@ -47,13 +47,49 @@ Réponse:
 
 ### `GET /users`
 
+```bash
+curl "$BASE/users" \
+  --header 'Accept: application/json' \
+  --header "Authorization: Bearer $TOKEN" \
+  --request 'GET'
+```
+
 ### `GET /albums`
+
+```bash
+curl "$BASE/albums" \
+  --header 'Accept: application/json' \
+  --header "Authorization: Bearer $TOKEN" \
+  --request 'GET'
+```
 
 ### `POST /albums`
 
+```bash
+curl "$BASE/albums" \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header "Authorization: Bearer $TOKEN" \
+  --request 'POST' \
+  --data '{"name": "..."}'
+```
+
 ### `GET /albums/<slug>`
 
+```bash
+curl "$BASE/albums/$SLUG" \
+  --header 'Accept: application/json' \
+  --header "Authorization: Bearer $TOKEN" \
+  --request 'GET'
+```
+
 ### `DELETE /albums/<slug>`
+
+```bash
+curl "$BASE/albums/$SLUG" \
+  --header "Authorization: Bearer $TOKEN" \
+  --request 'DELETE'
+```
 
 ### `GET /albums/<slug>/pics`
 
