@@ -2,6 +2,7 @@ import redis
 import os
 import magic
 import secrets
+import json
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
@@ -102,19 +103,42 @@ def token():
     return '', 401
 
 
-@app.route('/config', methods=['GET'])
+@app.route('/config', methods=['GET', 'PUT'])
 @jwt_required()
 def config():
     connect()
-    albums = []
-    for a in Album.select():
-        album = a.asdict()
-        album.pop('count')
-        album.pop('preview')
-        album['pics'] = Album.get(Album.slug == a.slug).pics
-        albums.append(album)
-    users = [user.asdict() for user in User.select()]
-    response = {'users': users, 'albums': albums}
+    response = '', 204
+    if request.method == 'GET':
+        albums = []
+        for a in Album.select():
+            album = a.asdict()
+            album.pop('count')
+            album.pop('preview')
+            album.pop('slug')
+            album['pics'] = Album.get(Album.slug == a.slug).pics
+            albums.append(album)
+        users = [user.asdict() for user in User.select()]
+        response = {'users': users, 'albums': albums}
+    elif request.method == 'PUT':
+        if 'file' not in request.files:
+            warning('no file part')
+            return response
+        file = request.files['file']
+        if file.filename == '':
+            warning('no file selected')
+            return response
+        config = json.loads(file.read())
+        for user in config['users']:
+            if not User.exists(user['name']):
+                if User(name=user['name'], email=user['email']).save():
+                    disconnect()
+            warning('user already exists')
+        for a in config['albums']:
+            album = Album(name=a['name'])
+            # TODO : expect album uniqueness
+            if not album.save():
+                error('unable to create an album')
+            album.add_pics(a['pics'])
     disconnect()
     return response
 

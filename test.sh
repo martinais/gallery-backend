@@ -274,16 +274,38 @@ test_export_config() {
     -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
   tmp=$(be_query "$auth" 'PATCH' "albums/$slug/pics" "{\"+\":[\"$filehash\"]}")
 
-  # export config
   result=$(be_query "$auth" 'GET' 'config')
-  expect='{ "albums": [ { "name": "Test", "pics": [ "7e81b0a01a4cec4c142f6f54607aa3ae" ], "slug": "test" } ], "users": [ { "email": "test@te.st", "name": "test" } ] } '
-
+  expect='{ "albums": [ { "name": "Test", "pics": [ "7e81b0a01a4cec4c142f6f54607aa3ae" ] } ], "users": [ { "email": "test@te.st", "name": "test" } ] } '
   body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
   if [[ $code -eq 200 && "$body" == "$expect" ]]; then
     success 'test_export_config'
   else
     failure 'test_export_config'
+  fi
+}
+
+test_import_config() {
+  auth=$(authenticate)
+  config='{ "albums": [ { "name": "Test", "pics": [ "7e81b0a01a4cec4c142f6f54607aa3ae" ] } ], "users": [ { "email": "test@te.st", "name": "test" } ] } '
+  echo "$config" > /tmp/test.json
+
+  # upload picture
+  filehash=$(md5sum test.png | cut -d ' ' -f 1)
+  curl -H "Authorization: Bearer $auth" \
+    -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
+
+  # import config
+  curl -H "Authorization: Bearer $auth" \
+    -X PUT http://localhost:5000/config -F 'file=@/tmp/test.json'
+
+  result=$(be_query "$auth" 'GET' 'config')
+  body=$(echo $result | head -c -4)
+  code=$(echo $result | tail -c 4)
+  if [[ "$body" == "$config" ]]; then
+    success 'test_import_config'
+  else
+    failure 'test_import_config'
   fi
 }
 
@@ -298,3 +320,4 @@ test_link_pic_to_album
 test_remove_album
 test_upload_unamed_album
 test_export_config
+test_import_config
