@@ -59,22 +59,6 @@ def index():
     return "Martinade's API"
 
 
-@app.route('/config', methods=['GET'])
-def config():
-    connect()
-    albums = []
-    for a in Album.select():
-        album = a.asdict()
-        album.pop('count')
-        album.pop('preview')
-        album['pics'] = Album.get(Album.slug == a.slug).pics
-        albums.append(album)
-    users = [user.name for user in User.select()]
-    response = {'users': users, 'albums': albums}
-    disconnect()
-    return response
-
-
 @app.route('/login', methods=['POST'])
 def login():
     connect()
@@ -116,6 +100,23 @@ def token():
         access_token = create_access_token(identity=name.decode())
         return jsonify(access_token=access_token), 201
     return '', 401
+
+
+@app.route('/config', methods=['GET'])
+@jwt_required()
+def config():
+    connect()
+    albums = []
+    for a in Album.select():
+        album = a.asdict()
+        album.pop('count')
+        album.pop('preview')
+        album['pics'] = Album.get(Album.slug == a.slug).pics
+        albums.append(album)
+    users = [user.name for user in User.select()]
+    response = {'users': users, 'albums': albums}
+    disconnect()
+    return response
 
 
 @app.route('/users', methods=['GET'])
