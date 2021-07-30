@@ -122,8 +122,7 @@ def token():
 @jwt_required()
 def users():
     connect()
-    users = [user.name for user in User.select()]
-    return {'users': users}
+    return {'users': [user.name for user in User.select()]}
     disconnect()
 
 

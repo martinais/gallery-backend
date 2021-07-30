@@ -125,8 +125,6 @@ test_get_album() {
 
 test_upload_picture() {
   auth=$(authenticate)
-  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}') # TODO : remove ?
-  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
   filehash=$(md5sum test.png | cut -d ' ' -f 1)
   curl -H "Authorization: Bearer $auth" \
     -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
@@ -265,12 +263,18 @@ test_upload_unamed_album() {
 
 test_export_config() {
   auth=$(authenticate)
+
+  # create a test album
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
   slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
+
+  # add picture to album
   filehash=$(md5sum test.png | cut -d ' ' -f 1)
   curl -H "Authorization: Bearer $auth" \
     -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
   tmp=$(be_query "$auth" 'PATCH' "albums/$slug/pics" "{\"+\":[\"$filehash\"]}")
+
+  # export config
   result=$(be_query "$auth" 'GET' 'config')
   expect='{ "albums": [ { "name": "Test", "pics": [ "7e81b0a01a4cec4c142f6f54607aa3ae" ], "slug": "test" } ], "users": [ "test" ] } '
   body=$(echo $result | head -c -4)
