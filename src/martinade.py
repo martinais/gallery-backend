@@ -113,7 +113,7 @@ def config():
         album.pop('preview')
         album['pics'] = Album.get(Album.slug == a.slug).pics
         albums.append(album)
-    users = [user.name for user in User.select()]
+    users = [user.asdict() for user in User.select()]
     response = {'users': users, 'albums': albums}
     disconnect()
     return response

@@ -40,6 +40,9 @@ class User(Model):
     def find(name):
         return User.select().where(User.name == name)
 
+    def asdict(self):
+        return {"name": self.name, "email": self.email}
+
 
 class Album(Model):
     path = os.path.join(BASE_PATH, "albums")

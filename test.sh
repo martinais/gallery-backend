@@ -276,7 +276,8 @@ test_export_config() {
 
   # export config
   result=$(be_query "$auth" 'GET' 'config')
-  expect='{ "albums": [ { "name": "Test", "pics": [ "7e81b0a01a4cec4c142f6f54607aa3ae" ], "slug": "test" } ], "users": [ "test" ] } '
+  expect='{ "albums": [ { "name": "Test", "pics": [ "7e81b0a01a4cec4c142f6f54607aa3ae" ], "slug": "test" } ], "users": [ { "email": "test@te.st", "name": "test" } ] } '
+
   body=$(echo $result | head -c -4)
   code=$(echo $result | tail -c 4)
   if [[ $code -eq 200 && "$body" == "$expect" ]]; then
