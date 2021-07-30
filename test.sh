@@ -125,7 +125,7 @@ test_get_album() {
 
 test_upload_picture() {
   auth=$(authenticate)
-  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}') # TODO : remove ?
   slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
   filehash=$(md5sum test.png | cut -d ' ' -f 1)
   curl -H "Authorization: Bearer $auth" \
@@ -263,6 +263,25 @@ test_upload_unamed_album() {
   fi
 }
 
+test_export_config() {
+  auth=$(authenticate)
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Test"}')
+  slug=$(echo $result | head -c -4 | jq '.slug' | tr -d '"')
+  filehash=$(md5sum test.png | cut -d ' ' -f 1)
+  curl -H "Authorization: Bearer $auth" \
+    -X PUT http://localhost:5000/pic/$filehash -F 'file=@test.png'
+  tmp=$(be_query "$auth" 'PATCH' "albums/$slug/pics" "{\"+\":[\"$filehash\"]}")
+  result=$(be_query "$auth" 'GET' 'config')
+  expect='{ "albums": [ { "name": "Test", "pics": [ "7e81b0a01a4cec4c142f6f54607aa3ae" ], "slug": "test" } ], "users": [ "test" ] } '
+  body=$(echo $result | head -c -4)
+  code=$(echo $result | tail -c 4)
+  if [[ $code -eq 200 && "$body" == "$expect" ]]; then
+    success 'test_export_config'
+  else
+    failure 'test_export_config'
+  fi
+}
+
 test_signin
 test_login_access
 test_list_users
@@ -273,3 +292,4 @@ test_upload_picture
 test_link_pic_to_album
 test_remove_album
 test_upload_unamed_album
+test_export_config
