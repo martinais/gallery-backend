@@ -102,7 +102,7 @@ def login():
         warning('Bad username or password.')
     else:
         pin = secrets.token_hex(4).upper()
-        if not kvstore.set(pin, name):  # TODO : EXPIRE the pin code
+        if not kvstore.set(pin, name):
             error('Unable to store pin code.')
             response = (jsonify(msg='Unable to store pin code.'), 500)
         else:
