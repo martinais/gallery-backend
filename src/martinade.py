@@ -13,7 +13,7 @@ from mail import MailManager
 
 app = Flask(__name__)
 app.debug = True
-# TODO configure expiration on JWT token
+app.config["JWT_EXPIRATION_DELTA"] = os.environ.get('JWT_EXPIRATION_DELTA')
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
 app.config["MAILJET_API_SECRET"] = os.environ.get('MAILJET_API_SECRET')
