@@ -13,7 +13,7 @@ from mail import MailManager
 
 app = Flask(__name__)
 app.debug = True
-app.config["JWT_EXPIRATION_DELTA"] = os.environ.get('JWT_EXPIRATION_DELTA')
+app.config["PIN_EXPIRATION_DELTA"] = os.environ.get('PIN_EXPIRATION_DELTA')
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
 app.config["MAILJET_API_SECRET"] = os.environ.get('MAILJET_API_SECRET')
@@ -102,6 +102,8 @@ def login():
         if not kvstore.set(pin, name):  # TODO : EXPIRE the pin code
             error('Unable to store pin code.')
             response = (jsonify(msg='Unable to store pin code.'), 500)
+        else:
+            kvstore.expire(pin, app.config['PIN_EXPIRATION_DELTA'])
         if not mailmanager.send_login_mail(User.get(User.name == name), pin):
             error('unable to send mail')
             response = ('Unable to send mail.', 500)

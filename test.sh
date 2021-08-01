@@ -1,5 +1,6 @@
 #!/bin/bash
 
+PIN_EXPIRATION=3 # TODO : get from env
 URL_BASE=http://localhost:5000
 
 success() { echo -e "\e[32mOK   $1\e[0m"; }
@@ -49,9 +50,8 @@ test_signin() {
 
 test_login_access() {
   make reset &> /dev/null
-  # ask to login, generate an OTP
   signin > /dev/null; result=$(login)
-  pin=$(rd_query keys '*' | tr -d '\r') # get the OTP
+  pin=$(rd_query keys '*' | tr -d '\r')
   if [[ $(echo $result | tail -c 4) -eq 204 && -n $pin ]]; then
     success 'test_login'
   else
@@ -68,9 +68,8 @@ test_login_access() {
 
 test_pin_reuse() {
   make reset &> /dev/null
-  # ask to login, generate an OTP
   signin > /dev/null; result=$(login)
-  pin=$(rd_query keys '*' | tr -d '\r') # get the OTP
+  pin=$(rd_query keys '*' | tr -d '\r')
   result=$(token $pin)
   code1=$(echo $result | tail -c 4)
   result=$(token $pin)
@@ -79,6 +78,20 @@ test_pin_reuse() {
     success 'test_pin_reuse'
   else
     failure 'test_pin_reuse'
+  fi
+}
+
+test_pin_expiration() {
+  make reset &> /dev/null
+  signin > /dev/null; result=$(login)
+  pin=$(rd_query keys '*' | tr -d '\r')
+  sleep $PIN_EXPIRATION
+  result=$(token $pin)
+  code=$(echo $result | tail -c 4)
+  if [[ $code -eq 401 ]]; then
+    success 'test_pin_expiration'
+  else
+    failure 'test_pin_expiration'
   fi
 }
 
@@ -326,6 +339,7 @@ test_import_config() {
 test_signin
 test_login_access
 test_pin_reuse
+test_pin_expiration
 test_list_users
 test_create_album
 test_list_albums
