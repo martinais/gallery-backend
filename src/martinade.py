@@ -123,7 +123,8 @@ def signin():
 @app.route('/token', methods=['POST'])
 def token():
     data = request.get_json()
-    name = kvstore.get(data['code'])  # TODO : DELETE the pin code
+    name = kvstore.get(data['code'])
+    kvstore.delete(data['code'])
     if name:
         access_token = create_access_token(identity=name.decode())
         return jsonify(access_token=access_token), 201

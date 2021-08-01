@@ -29,6 +29,12 @@ be_query() {
 signin() { be_query '' 'POST' 'signin' '{"name":"test","email":"test@te.st"}'; }
 login() { be_query '' 'POST' 'login' '{"name":"test"}'; }
 token() { be_query '' 'POST' 'token' '{"code":"'$1'"}'; }
+authenticate() {
+  make reset &> /dev/null
+  signin > /dev/null; login > /dev/null;
+  pin=$(rd_query keys '*' | tr -d '\r')
+  echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"'
+}
 
 test_signin() {
   make reset &> /dev/null
@@ -40,7 +46,6 @@ test_signin() {
     failure 'test_signin'
   fi
 }
-
 
 test_login_access() {
   make reset &> /dev/null
@@ -61,11 +66,20 @@ test_login_access() {
   fi
 }
 
-authenticate() {
+test_pin_reuse() {
   make reset &> /dev/null
-  signin > /dev/null; login > /dev/null;
-  pin=$(rd_query keys '*' | tr -d '\r')
-  echo $(token $pin) | head -c -4 | jq -e '.access_token' | tr -d '"'
+  # ask to login, generate an OTP
+  signin > /dev/null; result=$(login)
+  pin=$(rd_query keys '*' | tr -d '\r') # get the OTP
+  result=$(token $pin)
+  code1=$(echo $result | tail -c 4)
+  result=$(token $pin)
+  code2=$(echo $result | tail -c 4)
+  if [[ $code1 -eq 201 && $code2 -eq 401 ]]; then
+    success 'test_pin_reuse'
+  else
+    failure 'test_pin_reuse'
+  fi
 }
 
 test_list_users() {
@@ -311,6 +325,7 @@ test_import_config() {
 
 test_signin
 test_login_access
+test_pin_reuse
 test_list_users
 test_create_album
 test_list_albums
