@@ -42,6 +42,36 @@ def error(msg):
     app.logger.error(msg)
 
 
+def create_user(name, email):
+    # TODO : expect uniqueness of name from model and remove the next line
+    if not User.exists(name):
+        if User(name=name, email=email).save():
+            disconnect()
+            return True
+    warning('user already exists')
+    return False
+
+
+def create_album(name):
+    album = Album(name=name)
+    # TODO : expect album uniqueness
+    if not album.save():
+        error('unable to create an album')
+        return None
+    return album
+
+
+def file_upload():
+    if 'file' not in request.files:
+        warning('no file part')
+        return None
+    file = request.files['file']
+    if file.filename == '':
+        warning('no file selected')
+        return None
+    return file
+
+
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get('Origin')
@@ -81,16 +111,13 @@ def login():
 
 @app.route('/signin', methods=['POST'])
 def signin():
+    response = '', 409
     connect()
     data = request.get_json()
-    # TODO : expect uniqueness of name from model and remove the next line
-    if not User.exists(data.get('name')):
-        if User(name=data.get('name'), email=data.get('email')).save():
-            disconnect()
-            return '', 204
-        error('unable to create user')
+    if create_user(data.get('name'), data.get('email')):
+        response = '', 204
     disconnect()
-    return '', 409
+    return response
 
 
 @app.route('/token', methods=['POST'])
@@ -112,32 +139,18 @@ def config():
         albums = []
         for a in Album.select():
             album = a.asdict()
-            album.pop('count')
-            album.pop('preview')
-            album.pop('slug')
+            [album.pop(key) for key in ['count', 'preview', 'slug']]
             album['pics'] = Album.get(Album.slug == a.slug).pics
             albums.append(album)
         users = [user.asdict() for user in User.select()]
         response = {'users': users, 'albums': albums}
     elif request.method == 'PUT':
-        if 'file' not in request.files:
-            warning('no file part')
-            return response
-        file = request.files['file']
-        if file.filename == '':
-            warning('no file selected')
-            return response
+        file = file_upload()
         config = json.loads(file.read())
         for user in config['users']:
-            if not User.exists(user['name']):
-                if User(name=user['name'], email=user['email']).save():
-                    disconnect()
-            warning('user already exists')
+            create_user(user['name'], user['email'])
         for a in config['albums']:
-            album = Album(name=a['name'])
-            # TODO : expect album uniqueness
-            if not album.save():
-                error('unable to create an album')
+            album = create_album(a['name'])
             album.add_pics(a['pics'])
     disconnect()
     return response
@@ -162,10 +175,7 @@ def albums():
         if not album_name:
             response = 'An album should have a name.', 400
         else:
-            album = Album(name=album_name)
-            # TODO : expect album uniqueness
-            if not album.save():
-                error('unable to create an album')
+            album = create_album(album_name)
             response = jsonify(album.asdict()), 201
     disconnect()
     return response
@@ -214,13 +224,7 @@ def pic(filehash):
             app.config['UPLOAD_FOLDER'], filehash, as_attachment=True
         )
     if request.method == 'PUT':
-        if 'file' not in request.files:
-            warning('no file part')
-            return response
-        file = request.files['file']
-        if file.filename == '':
-            warning('no file selected')
-            return response
+        file = file_upload()
         if magic.from_buffer(file.read(2048), mime=True) in ALLOWED_MIMETYPES:
             file.seek(0)
             # TODO store this somewhere (in exif ?)
