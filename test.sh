@@ -111,9 +111,11 @@ test_create_album() {
   auth=$(authenticate)
   result=$(be_query "$auth" 'POST' 'albums' '{"name":"Nouvel An 2021"}')
   body=$(echo $result | head -c -4)
-  code=$(echo $result | tail -c 4)
+  code1=$(echo $result | tail -c 4)
+  result=$(be_query "$auth" 'POST' 'albums' '{"name":"Nouvel An 2021"}')
+  code2=$(echo $result | tail -c 4)
   expect='{ "count": 0, "name": "Nouvel An 2021", "preview": null, "slug": "nouvel-an-2021" } '
-  if [[ $code -eq 201 && "$body" == "$expect" ]]; then
+  if [[ $code1 -eq 201 && $code2 -eq 400 && "$body" == "$expect" ]]; then
     success 'test_create_album'
   else
     failure 'test_create_album'

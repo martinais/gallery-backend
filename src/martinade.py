@@ -43,10 +43,8 @@ def error(msg):
 
 
 def create_user(name, email):
-    # TODO : expect uniqueness of name from model and remove the next line
     if not User.exists(name):
         if User(name=name, email=email).save():
-            disconnect()
             return True
     warning('user already exists')
     return False
@@ -54,7 +52,9 @@ def create_user(name, email):
 
 def create_album(name):
     album = Album(name=name)
-    # TODO : expect album uniqueness
+    if album.exists():
+        warning('album already exists')
+        return None
     if not album.save():
         error('unable to create an album')
         return None
@@ -179,7 +179,10 @@ def albums():
             response = 'An album should have a name.', 400
         else:
             album = create_album(album_name)
-            response = jsonify(album.asdict()), 201
+            if album:
+                response = jsonify(album.asdict()), 201
+            else:
+                response = 'Album probably exists already.', 400
     disconnect()
     return response
 

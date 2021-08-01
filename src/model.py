@@ -64,6 +64,12 @@ class Album(Model):
                 self.pics = [f.name for f in files]
         super().__init__(*args, **kwargs)
 
+    def exists(self):
+        return Album.find(self.name).count() > 0
+
+    def find(name):
+        return Album.select().where(Album.name == name)
+
     def asdict(self):
         return {
             "slug": self.slug,
