@@ -43,11 +43,14 @@ def error(msg):
 
 
 def create_user(name, email):
-    if not User.exists(name):
-        if User(name=name, email=email).save():
-            return True
-    warning('user already exists')
-    return False
+    user = User(name=name, email=email)
+    if user.exists():
+        warning('user already exists')
+        return None
+    if not user.save():
+        error('unable to create an user')
+        return None
+    return user
 
 
 def create_album(name):
@@ -95,7 +98,7 @@ def login():
     connect()
     name = request.json.get("name", None)
     response = ('', 204)
-    if not User.exists(name):
+    if not User(name=name).exists():
         warning('Bad username or password.')
     else:
         pin = secrets.token_hex(4).upper()

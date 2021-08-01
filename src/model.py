@@ -34,8 +34,8 @@ class User(Model):
     class Meta:
         database = db
 
-    def exists(name):
-        return User.find(name).count() > 0
+    def exists(self):
+        return User.find(self.name).count() > 0
 
     def find(name):
         return User.select().where(User.name == name)
