@@ -12,7 +12,8 @@ from model import migrate_database, connect, disconnect, User, Album
 from mail import MailManager
 
 app = Flask(__name__)
-app.debug = True
+app.debug = bool(os.environ.get('DEBUG'))
+app.config["JWT_EXPIRATION_DELTA"] = os.environ.get('JWT_EXPIRATION_DELTA')
 app.config["PIN_EXPIRATION_DELTA"] = os.environ.get('PIN_EXPIRATION_DELTA')
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
@@ -26,7 +27,7 @@ kvstore = redis.Redis(host='kvstore')
 jwtmanager = JWTManager(app)
 mailmanager = MailManager(app)
 
-ALLOWLIST = ['http://localhost:8080', 'http://localhost:5000']
+ALLOWLIST = ['http://localhost:8080', 'http://localhost:5000', 'http://192.162.1.81:8080']
 
 
 # TODO add calling function name before messages
