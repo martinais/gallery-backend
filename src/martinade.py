@@ -18,7 +18,7 @@ app.config["PIN_EXPIRATION_DELTA"] = os.environ.get('PIN_EXPIRATION_DELTA')
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 app.config["MAILJET_API_KEY"] = os.environ.get('MAILJET_API_KEY')
 app.config["MAILJET_API_SECRET"] = os.environ.get('MAILJET_API_SECRET')
-app.config["UPLOAD_FOLDER"] = '/srv/data/pics/'
+app.config["UPLOAD_FOLDER"] = os.environ.get('DATA_FOLDER') + '/pics'
 
 ALLOWED_MIMETYPES = ['image/png', 'image/jpeg']
 
@@ -27,7 +27,7 @@ kvstore = redis.Redis(host='kvstore')
 jwtmanager = JWTManager(app)
 mailmanager = MailManager(app)
 
-ALLOWLIST = ['http://localhost:8080', 'http://localhost:5000', 'http://192.162.1.81:8080']
+ALLOWLIST = ['http://localhost:8080', 'http://localhost:5000']
 
 
 # TODO add calling function name before messages
