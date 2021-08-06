@@ -12,7 +12,7 @@ from model import migrate_database, connect, disconnect, User, Album
 from mail import MailManager
 
 app = Flask(__name__)
-app.debug = bool(os.environ.get('DEBUG'))
+app.debug = bool(int(os.environ.get('DEBUG')))
 app.config["JWT_EXPIRATION_DELTA"] = os.environ.get('JWT_EXPIRATION_DELTA')
 app.config["PIN_EXPIRATION_DELTA"] = os.environ.get('PIN_EXPIRATION_DELTA')
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
