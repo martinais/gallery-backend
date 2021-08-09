@@ -21,7 +21,7 @@ class MailManager:
                 {
                     "From": {
                         "Email": "noreply@martinade.fr",
-                        "Name": "tristan"
+                        "Name": "martinade.fr"
                     },
                     "To": [{"Email": user.email, "Name": user.name}],
                     "Subject": "Authentifie toi à gallery.martinade.fr",
