@@ -13,6 +13,7 @@ db = PostgresqlDatabase(
 
 
 def connect():
+    #if not db.connect(reuse_if_open=True): # TODO: find where the db keep being opened
     if not db.connect():
         exit("ERROR: unable to connect to database")
 

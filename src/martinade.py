@@ -27,7 +27,7 @@ kvstore = redis.Redis(host='kvstore')
 jwtmanager = JWTManager(app)
 mailmanager = MailManager(app)
 
-ALLOWLIST = ['http://localhost:8080', 'http://localhost:5000']
+ALLOWLIST = ['http://localhost:8080', 'http://localhost:8000', 'http://localhost:5000']
 
 
 # TODO add calling function name before messages
@@ -167,8 +167,9 @@ def config():
 @jwt_required()
 def users():
     connect()
-    return {'users': [user.name for user in User.select()]}
+    response = {'users': [user.name for user in User.select()]}
     disconnect()
+    return response
 
 
 @app.route('/albums', methods=['POST', 'GET'])
@@ -208,6 +209,7 @@ def album(slug):
 @jwt_required()
 def ablum_pics(slug):
     response = '', 204
+    connect()
     if request.method == 'GET':
         response = jsonify(pics=Album.get(Album.slug == slug).pics)
     if request.method == 'PATCH':
@@ -221,6 +223,7 @@ def ablum_pics(slug):
         else:
             error("wrong key in request: " + body)
             response = 'A `+` or `-` key is missing', 400
+    disconnect()
     return response
 
 
