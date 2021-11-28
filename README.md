@@ -93,13 +93,68 @@ curl "$BASE/albums/$SLUG" \
 
 ### `GET /albums/<slug>/pics`
 
+```bash
+curl "$BASE/albums/$SLUG/pics" \
+  --header "Authorization: Bearer $TOKEN"
+```
+
+On obtient une liste de hash:
+
+```json
+{
+  "pics": [
+    "...",
+    "..."
+  ]
+}
+```
+
 ### `PATCH /albums/<slug>/pics`
+
+Add/Remove pics from an album.
+
+```bash
+curl "$BASE/albums/$SLUG/pics" \
+  --header "Authorization: Bearer $TOKEN" \
+  --request 'PATCH' \
+  --data-raw '{
+    "+": [
+      "...hash...",
+      "...hash...",
+      "...hash..."
+    ],
+    "-": [
+      "...hash...",
+      "...hash..."
+    ]
+  }'
+```
+
+The previous example will remove 2 pics and add 3 to the `$SLUG` album.
+
+### `HEAD /albums/<slug>/pics`
+
+_incomming..._
 
 ### `GET /pic/<filehash>`
 
+```bash
+curl "$BASE/pic/$HASH" \
+  --header "Authorization: Bearer $TOKEN"
+```
+
 ### `PUT /pic/<filehash>`
 
-## Exemple
+Upload a picture.
+
+```bash
+curl "$BASE/pic/$HASH" \
+  --header "Authorization: Bearer $TOKEN" \
+  --request 'PUT' \
+  -F 'file=@/path/to/file'
+```
+
+## Exemple d'une authentification
 
 ```
 $ curl -i "$BASE/signin" \
